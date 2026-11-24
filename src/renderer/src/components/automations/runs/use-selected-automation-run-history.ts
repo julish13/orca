@@ -103,17 +103,17 @@ function acquireSelectedHistory(
   previous: HistoryAcquisition | null
 ): HistoryAcquisition | null {
   const selected = input.selected
-  const navigationOwner = input.navigation?.ownerKey
+  const navigation = input.navigation
+  const navigationOwner = navigation?.ownerKey
+  const captured = capturedAutomationOwner(input.context.capturedOwners, selected?.key ?? null)
+  const listedOwner = capturedAutomationOwnerKey(captured)
   if (
     input.suspended ||
     (navigationOwner &&
       (!selected ||
-        input.navigation?.automationId !== selected.automation.id ||
-        (input.navigation.rowKey !== undefined && input.navigation.rowKey !== selected.key) ||
-        navigationOwner !==
-          capturedAutomationOwnerKey(
-            capturedAutomationOwner(input.context.capturedOwners, selected.key)
-          )))
+        navigation?.automationId !== selected.automation.id ||
+        (navigation.rowKey !== undefined && navigation.rowKey !== selected.key) ||
+        navigationOwner !== listedOwner))
   ) {
     return null
   }
@@ -124,17 +124,13 @@ function acquireSelectedHistory(
     (!previous ||
       previous.selected.key !== selected.key ||
       previous.token !== input.acquisitionToken ||
-      (navigationOwner &&
-        navigationOwner !== previousOwner &&
-        navigationOwner ===
-          capturedAutomationOwnerKey(
-            capturedAutomationOwner(input.context.capturedOwners, selected.key)
-          )))
+      ((navigationOwner || navigation?.runId) &&
+        navigation?.automationId === selected.automation.id &&
+        listedOwner !== previousOwner))
   ) {
-    const captured = capturedAutomationOwner(input.context.capturedOwners, selected.key)
     const navigationHost = navigationOwner
       ? null
-      : navigationHostId(input.navigation, selected.automation.id)
+      : navigationHostId(navigation, selected.automation.id)
     const target = captured.owner
       ? getAutomationAuthorityTarget(captured.owner.authority)
       : navigationHost
@@ -187,9 +183,9 @@ function canReadHistory(
   owner: string | null
 ): boolean {
   const pending = useAppStore.getState().pendingAutomationRunNavigation
-  return navigation?.ownerKey
-    ? pending === navigation && navigation.ownerKey === owner
-    : !pending?.ownerKey
+  return navigation
+    ? pending === navigation && (!navigation.ownerKey || navigation.ownerKey === owner)
+    : !pending?.ownerKey && !pending?.runId
 }
 
 export function useSelectedAutomationRunHistory(input: SelectedAutomationRunHistoryInput): void {

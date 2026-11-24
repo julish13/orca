@@ -13,6 +13,7 @@ import {
   listAutomationsForTarget
 } from './hosts/automation-host-client'
 import { automationAuthorityCatalogKey } from './hosts/automation-host-catalog-types'
+import { resolveAutomationRunLinkRow } from './runs/automation-run-link-row'
 import { useSelectedAutomationRunHistory } from './runs/use-selected-automation-run-history'
 import type { AutomationsPageDestinationState } from './authoring/use-automations-page-destination-state'
 import type { AutomationsPageListState } from './listing/use-automations-page-list-state'
@@ -221,13 +222,31 @@ export function useAutomationsPageRefresh({
     (!selectedRow.catalogRef ||
       !blockedRunHistory.rowKey ||
       selectedRow.key === blockedRunHistory.rowKey)
+  const ownerlessRun =
+    pendingAutomationRunNavigation?.runId && !pendingAutomationRunNavigation.ownerKey
+      ? pendingAutomationRunNavigation
+      : null
+  // Only the addressed row can resolve an ownerless link to a current owner.
+  const waitingForOwnerlessRow =
+    ownerlessRun &&
+    (!pendingTargetKey ||
+      isLoading ||
+      automationHostTargetKey !== pendingTargetKey ||
+      !selectedRow ||
+      !local.automations.some((automation) => automation.id === ownerlessRun.automationId) ||
+      resolveAutomationRunLinkRow(
+        ownerlessRun,
+        list.visibleRows,
+        list.hostCatalog.rows.capturedOwners,
+        pendingTargetKey
+      ).row?.key !== selectedRow.key)
   useSelectedAutomationRunHistory({
     selected: selectedRow,
     selection: { automationId: store.selectedId, rowKey: local.selectedRowKey },
     retained: local.selectedAutomationRuns,
     context: destination.automationDispatchContext,
     legacyTarget: automationHostTargetFor,
-    navigation: pendingAutomationRunNavigation,
+    navigation: waitingForOwnerlessRow ? null : pendingAutomationRunNavigation,
     suspended:
       (boundRun !== null && selectedRow === null) ||
       (pendingAutomationRunNavigation?.ownerKey
