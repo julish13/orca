@@ -79,6 +79,7 @@ export function useAutomationRunPageState({
     setPageView,
     setRunPageOrigin,
     setRunNotFound,
+    runVisit,
     setRunVisit,
     isDetailOpen,
     setIsDetailOpen,
@@ -104,7 +105,7 @@ export function useAutomationRunPageState({
       scopedExternal.loading ||
       !isDetailOpen ||
       pendingAutomationRunNavigation ||
-      (pageView === 'run' && selectedAutomationRunPage)
+      (pageView === 'run' && (selectedAutomationRunPage || runVisit?.ownerKey))
     ) {
       return
     }
@@ -125,6 +126,7 @@ export function useAutomationRunPageState({
     scopedExternal.loading,
     isDetailOpen,
     pageView,
+    runVisit,
     selectedAutomationRunPage,
     externalAutomationEntries,
     visibleRows,
