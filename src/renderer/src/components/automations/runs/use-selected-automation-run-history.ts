@@ -52,6 +52,7 @@ export type SelectedAutomationRunHistoryOutcome = {
   capturedOwner?: AutomationCapturedOwner
   navigation: SelectedAutomationRunNavigation
   reloadToken: number
+  loading?: true
   runs: AutomationRun[]
   /**
    * Non-null when the host refused or failed the read. The runs are then unknown
@@ -72,6 +73,7 @@ export type SelectedAutomationRunHistoryInput = {
   /** Changing this re-asks the host; it is how a failed read offers Retry. */
   reloadToken: number
   acquisitionToken?: number
+  onStarted: () => void
   onSettled: (outcome: SelectedAutomationRunHistoryOutcome) => void
 }
 
@@ -229,6 +231,7 @@ export function useSelectedAutomationRunHistory(input: SelectedAutomationRunHist
       }
       const currentRequestId = ++requestId
       settled.current = null
+      inputRef.current.onStarted()
       void dispatchAutomationRunHistory(
         context,
         { rowKey, automationId },
@@ -246,35 +249,20 @@ export function useSelectedAutomationRunHistory(input: SelectedAutomationRunHist
         settled.current = { request, reloadToken }
         // A refused or failed read still settles: leaving the previous automation's
         // ID in place strands anything waiting on this one and shows its runs as zero.
-        onSettled(
-          result.ok
-            ? {
-                automationId,
-                rowKey,
-                ownerKey: owner,
-                authority: rowAuthority,
-                navigation,
-                reloadToken,
-                ...(captured.owner || captured.selector ? { capturedOwner: captured } : {}),
-                runs: result.value,
-                notice: null
-              }
-            : {
-                automationId,
-                rowKey,
-                ownerKey: owner,
-                authority: rowAuthority,
-                navigation,
-                reloadToken,
-                ...(captured.owner || captured.selector ? { capturedOwner: captured } : {}),
-                runs:
-                  inputRef.current.retained?.rowKey === rowKey &&
-                  inputRef.current.retained.ownerKey === owner
-                    ? inputRef.current.retained.runs
-                    : [],
-                notice: result.notice
-              }
-        )
+        const retained = inputRef.current.retained
+        const fallback =
+          retained?.rowKey === rowKey && retained.ownerKey === owner ? retained.runs : []
+        onSettled({
+          automationId,
+          rowKey,
+          ownerKey: owner,
+          authority: rowAuthority,
+          navigation,
+          reloadToken,
+          ...(captured.owner || captured.selector ? { capturedOwner: captured } : {}),
+          runs: result.ok ? result.value : fallback,
+          notice: result.ok ? null : result.notice
+        })
       })
     }
     const selector = captured.owner?.selector ?? captured.selector ?? selected.catalogRef?.selector

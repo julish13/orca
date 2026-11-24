@@ -272,7 +272,7 @@ export function AutomationsPageSurface({
       )
     }
     if (
-      pageView === 'run' ||
+      (pageView === 'run' && setup.boundRunHistoryOutcome !== 'unavailable') ||
       (isLoading && !hasListItems) ||
       (isDetailOpen &&
         local.selectedExternalKey !== null &&

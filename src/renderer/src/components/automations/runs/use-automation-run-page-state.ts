@@ -8,7 +8,7 @@ import {
 import { ALL_AUTOMATION_HOSTS_FILTER } from '../../../../../shared/automations/ownership/automation-host-filter'
 import { canRerunAutomationRun } from './automation-run-view-state'
 import { resolveAutomationRunLinkRow } from './automation-run-link-row'
-import { useAutomationRunOwnerReplacement } from './use-automation-run-owner-replacement'
+import { useAutomationRunVisitSettlement } from './use-automation-run-visit-settlement'
 import { useAutomationRunWorkspaceDetails } from './use-automation-run-workspace-details'
 import type { AutomationsPageListState } from '../listing/use-automations-page-list-state'
 import type { AutomationsPageLocalState } from '../use-automations-page-local-state'
@@ -46,6 +46,8 @@ export function useAutomationRunPageState({
     | 'setRunNotFound'
     | 'runNotFound'
     | 'runVisit'
+    | 'runPageOrigin'
+    | 'selectedAutomationRunPageId'
     | 'setRunVisit'
     | 'isDetailOpen'
     | 'setIsDetailOpen'
@@ -53,10 +55,7 @@ export function useAutomationRunPageState({
     | 'setBlockedRunHistory'
   >
   list: AutomationsPageListState
-  setup: Pick<
-    AutomationsPageSetupState,
-    'selectedRuns' | 'selectedRunsReady' | 'selectedRunsNotice' | 'selectedAutomationRunPage'
-  >
+  setup: AutomationsPageSetupState
 }) {
   const t = useTranslate()
   const {
@@ -97,7 +96,8 @@ export function useAutomationRunPageState({
   } = list
   const { selectedRuns, selectedRunsReady, selectedRunsNotice, selectedAutomationRunPage } = setup
   const capturedOwners = hostCatalog.rows.capturedOwners
-  const leaveReplacedRun = useAutomationRunOwnerReplacement(local, capturedOwners)
+  const missingRun = setup.boundRunHistoryOutcome === 'missing'
+  const leaveReplacedRun = useAutomationRunVisitSettlement(local, capturedOwners, missingRun)
 
   useEffect(() => {
     if (
@@ -268,7 +268,6 @@ export function useAutomationRunPageState({
     selectAutomationRow,
     visibleRows,
     pendingAutomationRunNavigation,
-    pageView,
     runtimeEnvironments,
     selectExternalKey,
     selectedExternalKey,

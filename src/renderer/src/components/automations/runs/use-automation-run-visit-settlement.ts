@@ -8,11 +8,14 @@ import {
   reportReplacedAutomationRunOwner
 } from './automation-run-link-row'
 
-export function useAutomationRunOwnerReplacement(
+export function useAutomationRunVisitSettlement(
   {
     pageView,
     runNotFound,
     runVisit,
+    runPageOrigin,
+    selectedAutomationRunPageId,
+    setRunNotFound,
     setBlockedRunHistory,
     setRunVisit,
     setSelectedAutomationRunPageId,
@@ -23,13 +26,17 @@ export function useAutomationRunOwnerReplacement(
     | 'pageView'
     | 'runNotFound'
     | 'runVisit'
+    | 'runPageOrigin'
+    | 'selectedAutomationRunPageId'
+    | 'setRunNotFound'
     | 'setBlockedRunHistory'
     | 'setRunVisit'
     | 'setSelectedAutomationRunPageId'
     | 'setIsDetailOpen'
     | 'setPageView'
   >,
-  capturedOwners: ReadonlyMap<string, AutomationCapturedOwner>
+  capturedOwners: ReadonlyMap<string, AutomationCapturedOwner>,
+  missingRun: boolean
 ): () => void {
   const t = useTranslate()
   const leaveReplacedRun = useCallback((): void => {
@@ -42,16 +49,38 @@ export function useAutomationRunOwnerReplacement(
 
   useEffect(() => {
     if (
-      pageView === 'run' &&
-      !runNotFound &&
-      runVisit &&
-      !useAppStore.getState().pendingAutomationRunNavigation &&
-      automationRunLinkOwnerChanged(runVisit, capturedOwners)
+      pageView !== 'run' ||
+      runNotFound ||
+      !runVisit ||
+      useAppStore.getState().pendingAutomationRunNavigation
     ) {
+      return
+    }
+    if (automationRunLinkOwnerChanged(runVisit, capturedOwners)) {
       setBlockedRunHistory(runVisit)
       leaveReplacedRun()
+    } else if (missingRun && selectedAutomationRunPageId) {
+      setRunNotFound({
+        ...runVisit,
+        kind: 'run',
+        runId: selectedAutomationRunPageId,
+        origin: runPageOrigin
+      })
+      setSelectedAutomationRunPageId(null)
     }
-  }, [pageView, runNotFound, runVisit, capturedOwners, setBlockedRunHistory, leaveReplacedRun])
+  }, [
+    pageView,
+    runNotFound,
+    runVisit,
+    runPageOrigin,
+    selectedAutomationRunPageId,
+    missingRun,
+    capturedOwners,
+    setBlockedRunHistory,
+    leaveReplacedRun,
+    setRunNotFound,
+    setSelectedAutomationRunPageId
+  ])
 
   return leaveReplacedRun
 }

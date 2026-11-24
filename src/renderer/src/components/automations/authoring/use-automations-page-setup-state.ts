@@ -141,6 +141,7 @@ export function useAutomationsPageSetupState({
     selectedAutomationRuns.rowKey === (selectedRow?.key ?? local.selectedRowKey)
   const selectedRunsReady =
     selectedRunsMatchSelection &&
+    !selectedAutomationRuns.loading &&
     selectedAutomationRuns.reloadToken === runHistoryReloadToken &&
     (!pendingAutomationRunNavigation ||
       selectedAutomationRuns.navigation === pendingAutomationRunNavigation)
@@ -155,6 +156,20 @@ export function useAutomationsPageSetupState({
   const selectedAutomationRunPage = selectedAutomationRunPageId
     ? (selectedRuns.find((run) => run.id === selectedAutomationRunPageId) ?? null)
     : null
+  const boundVisitOwner = local.runVisit?.ownerKey
+  const boundRunHistoryOutcome =
+    boundVisitOwner &&
+    local.pageView === 'run' &&
+    selectedAutomationRunPageId &&
+    selectedRow &&
+    !pendingAutomationRunNavigation &&
+    selectedRunsReady &&
+    selectedAutomationRuns.ownerKey === boundVisitOwner &&
+    !selectedAutomationRunPage
+      ? selectedRunsNotice
+        ? 'unavailable'
+        : 'missing'
+      : null
   const worktrees = useMemo(
     () => worktreesByRepo[draft.projectId] ?? [],
     [draft.projectId, worktreesByRepo]
@@ -165,6 +180,7 @@ export function useAutomationsPageSetupState({
   )
 
   return {
+    boundRunHistoryOutcome,
     getDraftSetupDecisionDefault,
     getAutomationHooksCacheKey,
     loadAutomationYamlHooksForRepo,
