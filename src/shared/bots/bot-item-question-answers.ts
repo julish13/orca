@@ -135,8 +135,9 @@ function answeredLines(
 
 // Hosts keep the waiting ask this pairs: a change to what it pairs bumps WAITING_ASK_RULES
 // (src/main/bots/bot-item-waiting-ask-keep.ts), and one to what events can't change it updates waitingAskChange there.
+// `item.waitingAsk`, from the host's read of the item, is never given by the host's own pairing.
 export function botItemQuestionPairing(
-  item: Pick<BotItem, 'status'>,
+  item: Pick<BotItem, 'status' | 'waitingAsk'>,
   events: readonly BotItemEvent[]
 ): BotItemQuestionPairing {
   const questions = new Map<string, BotItemQuestionAnswers>()
@@ -211,8 +212,15 @@ export function botItemQuestionPairing(
       open = null
     }
   }
-  // Only the latest ask waits, so each answer has one question to go to.
-  if (open?.entry.answers.includes(null) && item.status !== 'done' && item.status !== 'canceled') {
+  // Only the latest ask waits, so each answer has one question to go to. When the host names another
+  // ask waiting (one these events, read before it, don't hold yet), this one waits on nothing: a reply
+  // to it would be refused.
+  if (
+    open?.entry.answers.includes(null) &&
+    item.status !== 'done' &&
+    item.status !== 'canceled' &&
+    (item.waitingAsk === undefined || item.waitingAsk === open.id)
+  ) {
     open.entry.waiting = true
   }
   return { questions, replies }
@@ -243,7 +251,7 @@ function quotedLine(
 
 /** The ask the agent waits on, by its event id, with its lines' answers so far. */
 export function botItemWaitingAsk(
-  item: Pick<BotItem, 'status'>,
+  item: Pick<BotItem, 'status' | 'waitingAsk'>,
   events: readonly BotItemEvent[]
 ): ({ askId: string } & BotItemQuestionAnswers) | null {
   for (const [askId, entry] of botItemQuestionPairing(item, events).questions) {

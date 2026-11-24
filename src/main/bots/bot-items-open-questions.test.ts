@@ -9,8 +9,10 @@ import {
   type BotItemEvent
 } from '../../shared/bots/bot-items'
 import { botItemActivity } from '../../shared/bots/bot-item-activity'
+import { botItemQuestionView } from '../../shared/bots/bot-item-ask'
 import {
   botItemQuestionPairing,
+  botItemWaitingAsk,
   botItemWaitingLine
 } from '../../shared/bots/bot-item-question-answers'
 import { waitingAskChange } from './bot-item-waiting-ask-keep'
@@ -55,21 +57,26 @@ function item(path = ':memory:') {
     store.ownerComment(uid, text, OWNER, [], NOW, undefined, questionEventId, false, [], skipped)
   // What the item's view reads, from the host's item and the events loaded after `after`: the line
   // its comment box replies to, each ask's answers, which ask each reply quotes, and the comments
-  // shown waiting.
-  const view = (after = 0) => {
+  // shown waiting. `upTo`: the last event the view has read (an Activity page read before later events).
+  const view = (after = 0, upTo = Number.POSITIVE_INFINITY) => {
     const row = store.get(uid)!
     const waitingAsk = store.viewRows([uid], true).waitingAsks[uid]
     const shown = {
       status: row.status,
+      // As the host gives it with the item: its question lines too.
       question:
         row.questionEvent === null
           ? null
-          : { eventId: botItemEventId(row.questionEvent), text: '' },
+          : botItemQuestionView(
+              botItemEventId(row.questionEvent),
+              store.events(uid, row.questionEvent - 1, 1)[0]!.data
+            ),
       links: [],
       ...(waitingAsk ? { waitingAsk } : {})
     }
     const events = store
       .events(uid, after, 200)
+      .filter(({ id }) => id <= upTo)
       .map(({ id, kind, actor, data, createdAt }): BotItemEvent => ({
         id: botItemEventId(id),
         kind: BOT_ITEM_EVENT_KINDS.find((known) => known === kind) ?? 'edited',
@@ -80,6 +87,7 @@ function item(path = ':memory:') {
     const pairing = botItemQuestionPairing(shown, events)
     return {
       replyingTo: botItemWaitingLine(shown, events),
+      waitingAsk: botItemWaitingAsk(shown, events)?.askId ?? null,
       asks: pairing.questions,
       quotes: pairing.replies,
       waitingComments: botItemActivity(shown, events).flatMap((entry) =>
@@ -126,6 +134,29 @@ it('replaces an earlier set of questions when a later set is asked', () => {
   comment('Yes')
   expect(view().asks.get(botItemEventId(first))?.answers.map(Boolean)).toEqual([true, false])
   expect(view().asks.get(botItemEventId(second))?.answers.every(Boolean)).toBe(true)
+})
+
+it('never replies to a replaced ask while the Activity read predates the ask that replaced it', () => {
+  const { store, uid, ask, comment, view } = item()
+  const first = ask(['Merge PR #22?', GO])
+  // The desktop's Activity was read here; the agent then asks again before the owner answers.
+  const readUpTo = store.events(uid, 0, 200).at(-1)!.id
+  const second = ask(['Merge PR #22 and #23?'])
+  expect(store.viewRows([uid], true).waitingAsks[uid]).toBe(botItemEventId(second))
+  const { replyingTo, waitingAsk, asks, waitingComments } = view(0, readUpTo)
+  // The host names the later ask: the earlier one, the latest the stale page holds, is no target;
+  // the item's own question stands in for the later one until its event is read.
+  expect(replyingTo).toMatchObject({
+    eventId: botItemEventId(second),
+    line: 'Merge PR #22 and #23?'
+  })
+  expect(waitingAsk).toBeNull()
+  expect(asks.get(botItemEventId(first))).toMatchObject({ waiting: false })
+  expect(waitingComments).not.toContain(botItemEventId(first))
+  // The host refuses a reply naming it.
+  expect(() => comment('Merge PR #22? → Yes', first)).toThrow(/new question/)
+  // Once the later ask is read, the box replies to it.
+  expect(view().replyingTo).toMatchObject({ eventId: botItemEventId(second) })
 })
 
 it('keeps a reply naming a replaced set off the later set, even with that set on an earlier page', () => {

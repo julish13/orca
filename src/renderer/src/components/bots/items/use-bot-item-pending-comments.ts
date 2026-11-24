@@ -31,7 +31,9 @@ const usePendingComments = createBotItemPendingCommentsHook({ useEffect, useSync
 export function useBotItemPendingComments(
   bot: BotRef,
   uid: string,
-  events: readonly BotItemEvent[]
+  events: readonly BotItemEvent[],
+  /** Reads what changed on the item since its view's last read. */
+  refresh: () => void
 ): BotItemPendingComments {
   const t = useTranslate()
   return usePendingComments(`${botRefKey(bot)}\0${uid}`, events, {
@@ -47,12 +49,17 @@ export function useBotItemPendingComments(
         entry.skills,
         entry.skipped
       ),
-    failed: (error, replaced) =>
+    failed: (error, replaced) => {
       toast.error(
         replaced
           ? t('bots.items.ask.replaced', 'The agent asked a new question. Read it, then reply.')
           : botErrorMessage(error)
-      ),
+      )
+      // The host has a question this view hasn't read: read it, so the box stops naming the old one.
+      if (replaced) {
+        refresh()
+      }
+    },
     // An ask of several keeps its picks held for its card's recovery row; only the words they don't
     // keep go back to the box.
     returnText: (text, { intent }) => {
