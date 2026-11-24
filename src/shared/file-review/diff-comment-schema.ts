@@ -37,3 +37,14 @@ export const DiffCommentSchema = z.object({
   diffIdentity: z.string().optional(),
   side: z.literal('modified')
 })
+
+export const DiffCommentDeliverySnapshotSchema = DiffCommentSchema.pick({
+  id: true,
+  body: true,
+  filePath: true,
+  lineNumber: true,
+  startLine: true,
+  selectedText: true,
+  source: true,
+  updatedAt: true
+})

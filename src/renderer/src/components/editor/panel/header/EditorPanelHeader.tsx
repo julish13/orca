@@ -15,6 +15,7 @@ import { MarkdownDefaultViewContextMenu } from '../../view-mode/MarkdownDefaultV
 import type { EditorHeaderOpenFileState } from './editor-header'
 import { DiffNotesSendMenu } from '../../diff/review/DiffNotesSendMenu'
 import { SendNotesSlot } from '../../review-note-delivery/SendNotesButton'
+import { useClearNotesConfirm } from '../../review-note-delivery/notes-copy-clear'
 import { EditorPanelActionsMenu } from './EditorPanelActionsMenu'
 import { EditorFileLocationMenuItems } from './EditorFileLocationMenuItems'
 import { useTranslate } from '@/i18n/use-translate'
@@ -106,6 +107,7 @@ export function EditorPanelHeader({
     activeFile
   )
   const activeGroupId = useAppStore((s) => s.activeGroupIdByWorktree[activeFile.worktreeId])
+  const clearNotes = useClearNotesConfirm()
   const hasUnsentFileNotes = useMemo(
     () =>
       diffComments.some(
@@ -165,10 +167,12 @@ export function EditorPanelHeader({
               showFileScope
               align="start"
               batch={{ size: 'sm' }}
+              requestClear={clearNotes.requestClear}
             />
           ) : null}
         </SendNotesSlot>
       )}
+      {clearNotes.dialog}
       {canOpenPreview && (
         <TooltipProvider>
           <Tooltip>
