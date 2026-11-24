@@ -20,6 +20,7 @@ import { botErrorMessage } from '../bot-presentation'
 import { botHostTakes } from '../bot-host-capability'
 import { commentOnBotItem } from './use-bot-items'
 import { returnBotItemCommentDraft } from './bot-item-comment-draft'
+import { rereadBotItemView } from './use-bot-item-view'
 import {
   botItemClearDeliveredAnswers,
   botItemHeldAnswersScope,
@@ -31,9 +32,7 @@ const usePendingComments = createBotItemPendingCommentsHook({ useEffect, useSync
 export function useBotItemPendingComments(
   bot: BotRef,
   uid: string,
-  events: readonly BotItemEvent[],
-  /** Reads what changed on the item since its view's last read. */
-  refresh: () => void
+  events: readonly BotItemEvent[]
 ): BotItemPendingComments {
   const t = useTranslate()
   return usePendingComments(`${botRefKey(bot)}\0${uid}`, events, {
@@ -55,9 +54,10 @@ export function useBotItemPendingComments(
           ? t('bots.items.ask.replaced', 'The agent asked a new question. Read it, then reply.')
           : botErrorMessage(error)
       )
-      // The host has a question this view hasn't read: read it, so the box stops naming the old one.
+      // The host has a question the item's view hasn't read: the view open now (maybe not the one
+      // this was sent from) reads it, so its box stops naming the old one.
       if (replaced) {
-        refresh()
+        rereadBotItemView(bot, uid)
       }
     },
     // An ask of several keeps its picks held for its card's recovery row; only the words they don't

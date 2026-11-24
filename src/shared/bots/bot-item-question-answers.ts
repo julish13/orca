@@ -14,7 +14,7 @@ import {
   type BotItemDecision,
   type BotItemQuestionShape
 } from './bot-item-ask'
-import type { BotItem, BotItemEvent } from './bot-items'
+import { parseBotItemEventId, type BotItem, type BotItemEvent } from './bot-items'
 import { IMAGE_PROMPT_MARKER } from '../native-chat/transcript/images/native-chat-sent-image-prompt-markers'
 
 export type BotItemQuestionAnswers = {
@@ -212,18 +212,25 @@ export function botItemQuestionPairing(
       open = null
     }
   }
-  // Only the latest ask waits, so each answer has one question to go to. When the host names another
-  // ask waiting (one these events, read before it, don't hold yet), this one waits on nothing: a reply
-  // to it would be refused.
+  // Only the latest ask waits, so each answer has one question to go to.
   if (
     open?.entry.answers.includes(null) &&
     item.status !== 'done' &&
     item.status !== 'canceled' &&
-    (item.waitingAsk === undefined || item.waitingAsk === open.id)
+    !hostAsksLater(item.waitingAsk, open.id)
   ) {
     open.entry.waiting = true
   }
   return { questions, replies }
+}
+
+/** The host's item names a later ask than the latest these events hold: they were read before it was
+ *  asked, so theirs waits on nothing (a reply to it is refused). One it names earlier was read before
+ *  these events were: the events are newer, and their ask stands. */
+function hostAsksLater(waitingAsk: string | undefined, askId: string): boolean {
+  const named = waitingAsk === undefined ? null : parseBotItemEventId(waitingAsk)
+  const latest = parseBotItemEventId(askId)
+  return named !== null && latest !== null && named > latest
 }
 
 /** An answer sent with the ask's other lines skipped: the host lists them in `skipped`. */
