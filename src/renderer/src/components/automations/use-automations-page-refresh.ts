@@ -235,11 +235,8 @@ export function useAutomationsPageRefresh({
         : historyBlocked && !pendingAutomationRunNavigation),
     reloadToken: runHistoryReloadToken,
     acquisitionToken: local.runHistoryAcquisitionToken,
-    onStarted: () =>
-      local.setSelectedAutomationRuns((current) =>
-        current.loading ? current : { ...current, loading: true }
-      ),
-    onSettled: local.setSelectedAutomationRuns
+    onStarted: local.startSelectedRunHistory,
+    onSettled: local.settleSelectedRunHistory
   })
   useEffect(() => {
     const onAutomationsChanged = (): void => {

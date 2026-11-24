@@ -139,13 +139,15 @@ export function useAutomationsPageSetupState({
   const selectedRunsMatchSelection =
     selectedAutomationRuns.automationId === (selected?.id ?? store.selectedId) &&
     selectedAutomationRuns.rowKey === (selectedRow?.key ?? local.selectedRowKey)
-  const selectedRunsReady =
+  const selectedRunsMatchRequest =
     selectedRunsMatchSelection &&
-    !selectedAutomationRuns.loading &&
-    selectedAutomationRuns.reloadToken === runHistoryReloadToken &&
     (!pendingAutomationRunNavigation ||
       selectedAutomationRuns.navigation === pendingAutomationRunNavigation)
-  const selectedRunsNotice = selectedRunsReady ? selectedAutomationRuns.notice : null
+  const selectedRunsReady =
+    selectedRunsMatchRequest &&
+    !selectedAutomationRuns.loading &&
+    selectedAutomationRuns.reloadToken === runHistoryReloadToken
+  const selectedRunsNotice = selectedRunsMatchRequest ? selectedAutomationRuns.notice : null
   const selectedRuns = useMemo(
     () =>
       selectedRunsMatchSelection

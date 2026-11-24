@@ -57,6 +57,18 @@ export function useAutomationsPageLocalState(store: AutomationsPageStoreState) {
       runs: [],
       notice: null
     })
+  const settledRunHistoryRef = useRef<SelectedAutomationRunHistoryOutcome | null>(null)
+  const startSelectedRunHistory = useCallback(() => {
+    // Invalidate the terminal decision before loading state reaches the next render.
+    settledRunHistoryRef.current = null
+    setSelectedAutomationRuns((current) =>
+      current.loading ? current : { ...current, loading: true }
+    )
+  }, [])
+  const settleSelectedRunHistory = useCallback((outcome: SelectedAutomationRunHistoryOutcome) => {
+    settledRunHistoryRef.current = outcome
+    setSelectedAutomationRuns(outcome)
+  }, [])
   const [runHistoryReloadToken, setRunHistoryReloadToken] = useState(0)
   const [runHistoryAcquisitionToken, setRunHistoryAcquisitionToken] = useState(0)
   const [failedAuthorityKeys, setFailedAuthorityKeys] = useState<ReadonlySet<string>>(
@@ -184,9 +196,11 @@ export function useAutomationsPageLocalState(store: AutomationsPageStoreState) {
     automationHostTargetKey,
     setAutomationHostTargetKey,
     selectedAutomationRuns,
+    settledRunHistoryRef,
+    startSelectedRunHistory,
+    settleSelectedRunHistory,
     runHistoryAcquisitionToken,
     setRunHistoryAcquisitionToken,
-    setSelectedAutomationRuns,
     runHistoryReloadToken,
     setRunHistoryReloadToken,
     failedAuthorityKeys,

@@ -30,30 +30,7 @@ export function useAutomationRunPageState({
     | 'selectedId'
     | 'setSelectedId'
   >
-  local: Pick<
-    AutomationsPageLocalState,
-    | 'isLoading'
-    | 'automationHostTargetKey'
-    | 'automations'
-    | 'setSelectedAutomationRunPageId'
-    | 'setActivePaneTab'
-    | 'rerunRunIdsInFlight'
-    | 'selectedExternalKey'
-    | 'selectExternalKey'
-    | 'pageView'
-    | 'setPageView'
-    | 'setRunPageOrigin'
-    | 'setRunNotFound'
-    | 'runNotFound'
-    | 'runVisit'
-    | 'runPageOrigin'
-    | 'selectedAutomationRunPageId'
-    | 'setRunVisit'
-    | 'isDetailOpen'
-    | 'setIsDetailOpen'
-    | 'blockedRunHistory'
-    | 'setBlockedRunHistory'
-  >
+  local: AutomationsPageLocalState
   list: AutomationsPageListState
   setup: AutomationsPageSetupState
 }) {

@@ -14,6 +14,8 @@ export function useAutomationRunVisitSettlement(
     runNotFound,
     runVisit,
     runPageOrigin,
+    selectedAutomationRuns,
+    settledRunHistoryRef,
     selectedAutomationRunPageId,
     setRunNotFound,
     setBlockedRunHistory,
@@ -27,6 +29,8 @@ export function useAutomationRunVisitSettlement(
     | 'runNotFound'
     | 'runVisit'
     | 'runPageOrigin'
+    | 'selectedAutomationRuns'
+    | 'settledRunHistoryRef'
     | 'selectedAutomationRunPageId'
     | 'setRunNotFound'
     | 'setBlockedRunHistory'
@@ -59,7 +63,11 @@ export function useAutomationRunVisitSettlement(
     if (automationRunLinkOwnerChanged(runVisit, capturedOwners)) {
       setBlockedRunHistory(runVisit)
       leaveReplacedRun()
-    } else if (missingRun && selectedAutomationRunPageId) {
+    } else if (
+      missingRun &&
+      selectedAutomationRunPageId &&
+      settledRunHistoryRef.current === selectedAutomationRuns
+    ) {
       setRunNotFound({
         ...runVisit,
         kind: 'run',
@@ -73,6 +81,8 @@ export function useAutomationRunVisitSettlement(
     runNotFound,
     runVisit,
     runPageOrigin,
+    selectedAutomationRuns,
+    settledRunHistoryRef,
     selectedAutomationRunPageId,
     missingRun,
     capturedOwners,

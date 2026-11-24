@@ -72,7 +72,6 @@ export function AutomationsPageSurface({
     relativeNow,
     externalActionKey,
     setSelectedAutomationRunPageId,
-    setSelectedAutomationRuns,
     setRunHistoryReloadToken,
     isDetailOpen,
     setIsDetailOpen,
@@ -305,7 +304,6 @@ export function AutomationsPageSurface({
           selectedHostEntry={selectedRecoveryHost}
           recoverSelectedRuns={(action) => {
             hostCatalog.recover(action, selectedRecoveryHost)
-            setSelectedAutomationRuns((current) => ({ ...current, notice: null }))
             setRunHistoryReloadToken((token) => token + 1)
           }}
           activePaneTab={activePaneTab}
