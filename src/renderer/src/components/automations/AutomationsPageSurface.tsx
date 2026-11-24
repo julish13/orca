@@ -71,7 +71,6 @@ export function AutomationsPageSurface({
     setExternalDeleteTarget,
     relativeNow,
     externalActionKey,
-    activePaneTab,
     setSelectedAutomationRunPageId,
     setSelectedAutomationRuns,
     setRunHistoryReloadToken,
@@ -85,6 +84,8 @@ export function AutomationsPageSurface({
     runNotFound
   } = local
   const { hostCatalog, hasListItems, selected, selectedRow, selectedExternal } = list
+  const activePaneTab =
+    setup.boundRunHistoryOutcome === 'unavailable' ? 'runs' : local.activePaneTab
   const selectedAutomationRunPage = setup.selectedAutomationRunPage
   const selectedRunWorktreeMap = new Map(
     setup.selectedRuns.flatMap((run) => {
