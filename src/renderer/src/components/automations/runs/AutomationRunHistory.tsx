@@ -16,6 +16,7 @@ import { automationRunOccurrenceLabel, isAutomationRunFolded } from './automatio
 import { getAutomationRunWorkspaceDisplay } from './automation-run-workspace-display'
 import { useRevealAutomationRun } from './use-reveal-automation-run'
 import { AutomationOwnerConflictNotice } from '../hosts/AutomationOwnerConflictNotice'
+import { AutomationRunHistoryLoading } from './AutomationRunHistoryLoading'
 import type { AutomationActionNotice } from '../hosts/automation-row-action-dispatch'
 import type { AutomationHostRecoveryAction } from '../hosts/automation-host-status-descriptors'
 import {
@@ -43,6 +44,7 @@ type AutomationRunHistoryProps = {
   worktreeMap: ReadonlyMap<string, Worktree>
   /** Set when the history read failed; the runs below are unknown, not zero. */
   notice?: AutomationActionNotice | null
+  loading: boolean
   onRecoverHistory?: (action: AutomationHostRecoveryAction) => void
   onOpenRun: (run: AutomationRun) => void
 }
@@ -65,6 +67,7 @@ export function AutomationRunHistory({
   automationId,
   worktreeMap,
   notice,
+  loading,
   onRecoverHistory,
   onOpenRun
 }: AutomationRunHistoryProps): React.JSX.Element {
@@ -329,6 +332,8 @@ export function AutomationRunHistory({
               </p>
               <AutomationOwnerConflictNotice notice={notice} onRecover={onRecoverHistory} />
             </div>
+          ) : loading ? (
+            <AutomationRunHistoryLoading className="px-3 py-6" />
           ) : runs.length === 0 ? (
             <div className="px-3 py-6 text-center text-sm text-muted-foreground">
               {t('auto.components.automations.AutomationRunHistory.402651bfb6', 'No runs yet.')}

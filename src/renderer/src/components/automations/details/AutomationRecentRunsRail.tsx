@@ -16,6 +16,7 @@ import type { AutomationActionNotice } from '../hosts/automation-row-action-disp
 import type { AutomationHostRecoveryAction } from '../hosts/automation-host-status-descriptors'
 import { formatAutomationRunLabel } from '../runs/automation-run-identity-label'
 import { AutomationRunStatusDot } from '../runs/AutomationRunStatusDot'
+import { AutomationRunHistoryLoading } from '../runs/AutomationRunHistoryLoading'
 
 const RECENT_RUN_LIMIT = 8
 
@@ -23,6 +24,7 @@ const RECENT_RUN_LIMIT = 8
 export function AutomationRecentRunsRail({
   runs,
   notice,
+  loading,
   onRecoverHistory,
   onOpenRun,
   onShowAllRuns,
@@ -32,6 +34,7 @@ export function AutomationRecentRunsRail({
   runs: readonly AutomationRun[]
   /** Set when the history read failed; the runs are unknown, not zero. */
   notice: AutomationActionNotice | null
+  loading: boolean
   onRecoverHistory: (action: AutomationHostRecoveryAction) => void
   onOpenRun: (run: AutomationRun) => void
   onShowAllRuns: () => void
@@ -53,7 +56,7 @@ export function AutomationRecentRunsRail({
         )}
       >
         {t('auto.components.automations.recentRuns.title', 'Recent runs')}
-        {notice ? null : <span className="font-normal tabular-nums">{runs.length}</span>}
+        {notice || loading ? null : <span className="font-normal tabular-nums">{runs.length}</span>}
       </h3>
       {notice ? (
         <div className="grid gap-2 px-4 py-3" data-testid="automation-run-history-failure">
@@ -65,6 +68,8 @@ export function AutomationRecentRunsRail({
           </p>
           <AutomationOwnerConflictNotice notice={notice} onRecover={onRecoverHistory} />
         </div>
+      ) : loading ? (
+        <AutomationRunHistoryLoading className="px-4 py-3" />
       ) : recent.length === 0 ? (
         <p className="px-4 py-3 text-sm text-muted-foreground">
           {t('auto.components.automations.AutomationRunHistory.402651bfb6', 'No runs yet.')}

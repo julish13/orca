@@ -15,6 +15,10 @@ import { getVisibleAutomationSetupDecision } from './automation-setup-decision'
 import type { AutomationsPageListState } from '../listing/use-automations-page-list-state'
 import type { AutomationsPageLocalState } from '../use-automations-page-local-state'
 import type { AutomationsPageStoreState } from '../use-automations-page-store-state'
+import {
+  capturedAutomationOwner,
+  capturedAutomationOwnerKey
+} from '../hosts/automation-captured-owner'
 
 /** Draft setup policy, selected history, and the page's legacy host target. */
 export function useAutomationsPageSetupState({
@@ -138,7 +142,12 @@ export function useAutomationsPageSetupState({
 
   const selectedRunsMatchSelection =
     selectedAutomationRuns.automationId === (selected?.id ?? store.selectedId) &&
-    selectedAutomationRuns.rowKey === (selectedRow?.key ?? local.selectedRowKey)
+    selectedAutomationRuns.rowKey === (selectedRow?.key ?? local.selectedRowKey) &&
+    (!selectedRow ||
+      selectedAutomationRuns.ownerKey ===
+        capturedAutomationOwnerKey(
+          capturedAutomationOwner(list.hostCatalog.rows.capturedOwners, selectedRow.key)
+        ))
   const selectedRunsMatchRequest =
     selectedRunsMatchSelection &&
     (!pendingAutomationRunNavigation ||
@@ -155,6 +164,7 @@ export function useAutomationsPageSetupState({
         : [],
     [selectedAutomationRuns.automationId, selectedRunsMatchSelection, historyRuns]
   )
+  const selectedRunsLoading = !selectedRunsReady && !selectedRunsNotice && selectedRuns.length === 0
   const selectedAutomationRunPage = selectedAutomationRunPageId
     ? (selectedRuns.find((run) => run.id === selectedAutomationRunPageId) ?? null)
     : null
@@ -191,6 +201,7 @@ export function useAutomationsPageSetupState({
     selectedRuns,
     selectedRunsReady,
     selectedRunsNotice,
+    selectedRunsLoading,
     selectedAutomationRunPage,
     worktrees,
     automationHostTarget

@@ -38,6 +38,7 @@ type AutomationsDetailPaneProps = {
   selectedRuns: AutomationRun[]
   /** Set when the selected automation's history read failed; its runs are unknown. */
   selectedRunsNotice: AutomationActionNotice | null
+  selectedRunsLoading: boolean
   /** 'runs' shows the automation's full run history as its own page. */
   activePaneTab: AutomationPaneTab
   relativeNow: number
@@ -74,6 +75,7 @@ export function AutomationsDetailPane({
   selectedExternal,
   selectedRuns,
   selectedRunsNotice,
+  selectedRunsLoading,
   activePaneTab,
   relativeNow,
   externalActionKey,
@@ -136,7 +138,7 @@ export function AutomationsDetailPane({
             {t('auto.components.automations.AutomationsPage.0e110a3469', 'Runs')}
           </AutomationsPageTitle>
           {/* A failed read knows no counts; "0 runs" would answer a question nobody asked the host. */}
-          {selectedRunsNotice ? null : (
+          {selectedRunsNotice || selectedRunsLoading ? null : (
             <p className="text-sm text-muted-foreground">
               {formatAutomationRunCountSummary(selectedRuns, t)}
             </p>
@@ -147,6 +149,7 @@ export function AutomationsDetailPane({
           automationId={selected.id}
           worktreeMap={worktreeMap}
           notice={selectedRunsNotice}
+          loading={selectedRunsLoading}
           onRecoverHistory={recoverSelectedRuns}
           onOpenRun={(run) => openAutomationRunPage(run, 'automationRuns')}
         />
@@ -180,6 +183,7 @@ export function AutomationsDetailPane({
         automation={selected}
         runs={selectedRuns}
         runsNotice={selectedRunsNotice}
+        runsLoading={selectedRunsLoading}
         onRecoverHistory={recoverSelectedRuns}
         onOpenRun={(run) => openAutomationRunPage(run, 'automation')}
         onShowAllRuns={showAllRuns}

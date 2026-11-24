@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/store/index'
 import { resolveAutomationRunTarget } from './runs/automation-run-open-target'
 import { useIntlLocale, useTranslate } from '@/i18n/use-translate'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { AutomationsPageEditorDialog } from './AutomationsPageEditorDialog'
 import { AutomationsDetailPane } from './details/AutomationsDetailPane'
 import { AutomationsPageSkeleton } from './AutomationsPageSkeleton'
@@ -18,6 +17,7 @@ import { AutomationOwnerConflictNotice } from './hosts/AutomationOwnerConflictNo
 import type { AutomationsPageController } from './use-automations-page-controller'
 import { AutomationRunsDashboardSurface } from './runs/AutomationRunsDashboardSurface'
 import { AutomationRunDetailsPage } from './runs/AutomationRunDetailsPage'
+import { AutomationRunHistoryLoading } from './runs/AutomationRunHistoryLoading'
 import { AutomationRunNotFound } from './runs/AutomationRunNotFound'
 import { AutomationsPageDeleteDialogs } from './AutomationsPageDeleteDialogs'
 import { AutomationsPageListPanel } from './AutomationsPageListPanel'
@@ -226,13 +226,7 @@ export function AutomationsPageSurface({
     if (pageView === 'run' && store.pendingAutomationRunNavigation?.runId) {
       return (
         <AutomationsPageFrame nav={crumbs(rootCrumb)}>
-          <div
-            role="status"
-            className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground"
-          >
-            <LoadingSpinner className="size-4" />
-            {t('auto.components.automations.AutomationRunsDashboard.loading', 'Loading runs…')}
-          </div>
+          <AutomationRunHistoryLoading className="py-16" />
         </AutomationsPageFrame>
       )
     }
@@ -301,6 +295,7 @@ export function AutomationsPageSurface({
           selectedExternal={selectedExternal}
           selectedRuns={setup.selectedRuns}
           selectedRunsNotice={setup.selectedRunsNotice}
+          selectedRunsLoading={setup.selectedRunsLoading}
           selectedHostEntry={selectedRecoveryHost}
           recoverSelectedRuns={(action) => {
             hostCatalog.recover(action, selectedRecoveryHost)

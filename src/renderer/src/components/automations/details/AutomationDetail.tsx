@@ -43,6 +43,7 @@ type AutomationDetailProps = {
   now: number
   /** Set when the history read failed; `runs` is then unknown, not empty. */
   runsNotice?: AutomationActionNotice | null
+  runsLoading?: boolean
   onRecoverHistory?: (action: AutomationHostRecoveryAction) => void
   onOpenRun: (run: AutomationRun) => void
   onShowAllRuns: () => void
@@ -128,6 +129,7 @@ export function AutomationDetail({
   runNowAvailability,
   now,
   runsNotice = null,
+  runsLoading = false,
   onRecoverHistory = NO_HISTORY_RECOVERY,
   onOpenRun,
   onShowAllRuns,
@@ -367,7 +369,7 @@ export function AutomationDetail({
       <AutomationDetailHealth
         automation={automation}
         runs={runs}
-        runsUnavailable={Boolean(runsNotice)}
+        runsUnavailable={runsLoading || Boolean(runsNotice)}
         latestRun={latestRun}
         now={now}
         onOpenRun={onOpenRun}
@@ -380,6 +382,7 @@ export function AutomationDetail({
             className="self-start @4xl:col-start-2 @4xl:row-start-1"
             runs={runs}
             notice={runsNotice}
+            loading={runsLoading}
             onRecoverHistory={onRecoverHistory}
             onOpenRun={onOpenRun}
             onShowAllRuns={onShowAllRuns}

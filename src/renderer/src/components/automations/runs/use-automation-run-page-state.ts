@@ -46,6 +46,8 @@ export function useAutomationRunPageState({
     isLoading,
     automationHostTargetKey,
     automations,
+    selectedAutomationRuns,
+    settledRunHistoryRef,
     setSelectedAutomationRunPageId,
     setActivePaneTab,
     rerunRunIdsInFlight,
@@ -205,7 +207,7 @@ export function useAutomationRunPageState({
       setPageView('automations')
       return
     }
-    if (!selectedRunsReady) {
+    if (!selectedRunsReady || settledRunHistoryRef.current !== selectedAutomationRuns) {
       return
     }
     if (pending.ownerKey) {
@@ -250,9 +252,11 @@ export function useAutomationRunPageState({
     selectedExternalKey,
     selectedId,
     selectedRow,
+    selectedAutomationRuns,
     selectedRuns,
     selectedRunsReady,
     selectedRunsNotice,
+    settledRunHistoryRef,
     setActivePaneTab,
     setBlockedRunHistory,
     setIsDetailOpen,
